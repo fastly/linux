@@ -104,7 +104,6 @@ extern char core_pattern[];
 extern unsigned int core_pipe_limit;
 #endif
 extern int pid_max;
-extern int min_free_kbytes;
 extern int pid_max_min, pid_max_max;
 extern int sysctl_drop_caches;
 extern int percpu_pagelist_fraction;
@@ -1246,9 +1245,17 @@ static struct ctl_table vm_table[] = {
 		.data		= &min_free_kbytes,
 		.maxlen		= sizeof(min_free_kbytes),
 		.mode		= 0644,
-		.proc_handler	= min_free_kbytes_sysctl_handler,
+		.proc_handler	= free_kbytes_sysctl_handler,
 		.extra1		= &zero,
 	},
+    {
+       .procname   = "extra_free_kbytes",
+       .data       = &extra_free_kbytes,
+       .maxlen     = sizeof(extra_free_kbytes),
+       .mode       = 0644,
+       .proc_handler   = free_kbytes_sysctl_handler,
+       .extra1     = &zero,
+    },
 	{
 		.procname	= "percpu_pagelist_fraction",
 		.data		= &percpu_pagelist_fraction,
