@@ -105,13 +105,13 @@ enum {
 #define TCP_THIN_LINEAR_TIMEOUTS 16      /* Use linear timeouts for thin streams*/
 #define TCP_THIN_DUPACK         17      /* Fast retrans. after 1 dupack */
 #define TCP_USER_TIMEOUT	18	/* How long for loss retry before timeout */
-#define TCP_REPAIR		19	/* TCP sock is under repair right now */
+#define TCP_REPAIR		24	/* TCP sock is under repair right now */
 #define TCP_REPAIR_QUEUE	20
 #define TCP_QUEUE_SEQ		21
 #define TCP_REPAIR_OPTIONS	22
 #define TCP_FASTOPEN		23	/* Enable FastOpen on listeners */
-#define TCP_TIMESTAMP		24
-#define TCP_CWND            24 /* Set congestion window */
+#define TCP_TIMESTAMP		25
+#define TCP_CWND            19 /* Set congestion window */
 
 struct tcp_repair_opt {
 	__u32	opt_code;
