@@ -722,6 +722,13 @@ static struct ctl_table ipv4_table[] = {
 		.mode		= 0644,
 		.proc_handler   = proc_allowed_congestion_control,
 	},
+        {
+		.procname       = "tcp_user_cwnd_max",
+		.data           = &sysctl_tcp_user_cwnd_max,
+		.maxlen         = sizeof(int),
+		.mode           = 0644,
+		.proc_handler   = proc_dointvec
+	},
 	{
 		.procname	= "tcp_max_ssthresh",
 		.data		= &sysctl_tcp_max_ssthresh,
