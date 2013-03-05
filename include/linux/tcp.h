@@ -106,6 +106,7 @@ enum {
 #define TCP_THIN_LINEAR_TIMEOUTS 16      /* Use linear timeouts for thin streams*/
 #define TCP_THIN_DUPACK         17      /* Fast retrans. after 1 dupack */
 #define TCP_USER_TIMEOUT	18	/* How long for loss retry before timeout */
+#define TCP_CWND        19      /* Set congestion window */
 
 /* for TCP_INFO socket option */
 #define TCPI_OPT_TIMESTAMPS	1
