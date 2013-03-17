@@ -141,8 +141,9 @@ void inet_sock_destruct(struct sock *sk)
 	sk_mem_reclaim(sk);
 
 	if (sk->sk_type == SOCK_STREAM && sk->sk_state != TCP_CLOSE) {
-		pr_err("Attempt to release TCP socket in state %d %p\n",
-		       sk->sk_state, sk);
+        pr_err("Attempt to release TCP socket family %d in state %d %p\n",
+              sk->sk_family, sk->sk_state, sk);
+        WARN_ON_ONCE(1);
 		return;
 	}
 	if (!sock_flag(sk, SOCK_DEAD)) {
