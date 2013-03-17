@@ -527,7 +527,9 @@ static inline void sock_hold(struct sock *sk)
  */
 static inline void __sock_put(struct sock *sk)
 {
-	atomic_dec(&sk->sk_refcnt);
+    int newref = atomic_dec_return(&sk->sk_refcnt);
+
+    BUG_ON(newref <= 0);
 }
 
 static inline bool sk_del_node_init(struct sock *sk)

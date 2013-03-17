@@ -717,7 +717,7 @@ void inet_csk_prepare_forced_close(struct sock *sk)
 {
 	/* sk_clone_lock locked the socket and set refcnt to 2 */
 	bh_unlock_sock(sk);
-	sock_put(sk);
+	__sock_put(sk);
 
 	/* The below has to be done to allow calling inet_csk_destroy_sock */
 	sock_set_flag(sk, SOCK_DEAD);
@@ -813,7 +813,7 @@ void inet_csk_listen_stop(struct sock *sk)
 			 * tcp_v4_destroy_sock().
 			 */
 			tcp_sk(child)->fastopen_rsk = NULL;
-			sock_put(sk);
+			__sock_put(sk);
 		}
 		inet_csk_destroy_sock(child);
 
