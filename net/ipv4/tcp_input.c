@@ -2773,7 +2773,20 @@ static void tcp_fastretrans_alert(struct sock *sk, int pkts_acked,
 	/* D. Check state exit conditions. State can be terminated
 	 *    when high_seq is ACKed. */
 	if (icsk->icsk_ca_state == TCP_CA_Open) {
-		WARN_ON(tp->retrans_out != 0);
+		if (WARN_ON(tp->retrans_out != 0)) {
+			printk(KERN_DEBUG "%pI4:%u F0x%x S%u s%d IF%u+%u-%u-%u"
+			       "f%u ur%u rr%u rt%u um%u hs%u nxt%u\n",
+			       &inet_sk(sk)->inet_daddr,
+			       ntohs(inet_sk(sk)->inet_dport),
+			       flag, sk->sk_state, tp->rx_opt.sack_ok,
+			       tp->packets_out, tp->retrans_out,
+			       tp->sacked_out, tp->lost_out,
+			       tp->frto, tp->undo_retrans,
+			       tp->reordering, icsk->icsk_retransmits,
+			       tp->undo_marker ? tp->undo_marker-tp->snd_una:0,
+			       tp->high_seq - tp->snd_una,
+			       tp->snd_nxt - tp->snd_una);
+		}
 		tp->retrans_stamp = 0;
 	} else if (!before(tp->snd_una, tp->high_seq)) {
 		switch (icsk->icsk_ca_state) {
