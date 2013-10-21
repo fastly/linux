@@ -185,7 +185,8 @@ struct sock *__inet_lookup_listener(struct net *net,
 	unsigned int hash = inet_lhashfn(net, hnum);
 	struct inet_listen_hashbucket *ilb = &hashinfo->listening_hash[hash];
 	int score, hiscore, matches = 0, reuseport = 0;
-	u32 phash = 0;
+	//	u32 phash = 0;
+	int curr_cpu = smp_processor_id();
 
 	rcu_read_lock();
 begin:
@@ -208,7 +209,7 @@ begin:
 		     it is critical that a RSS queue is bound to a specific cpu
 		   */
 		  
-			if (matches++ == smp_processor_id()) {
+			if (matches++ == curr_cpu) {
 			  result = sk;
 			}
 
