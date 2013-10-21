@@ -198,15 +198,26 @@ begin:
 			hiscore = score;
 			reuseport = sk->sk_reuseport;
 			if (reuseport) {
-				phash = inet_ehashfn(net, daddr, hnum,
+			  /*		phash = inet_ehashfn(net, daddr, hnum,
 						     saddr, sport);
-				matches = 1;
+				matches = 1; */
 			}
 		} else if (score == hiscore && reuseport) {
-			matches++;
+		  
+		  /* goes through the sks and find the one corresponding to our cpu 
+		     it is critical that a RSS queue is bound to a specific cpu
+		   */
+		  
+			if (matches++ == smp_processor_id()) {
+			  result = sk;
+			}
+
+			/*
 			if (((u64)phash * matches) >> 32 == 0)
 				result = sk;
 			phash = next_pseudo_random32(phash);
+			*/
+			/* this has not been assigned to a cpu yet */
 		}
 	}
 	/*
