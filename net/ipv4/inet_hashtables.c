@@ -185,7 +185,8 @@ struct sock *__inet_lookup_listener(struct net *net,
 	unsigned int hash = inet_lhashfn(net, hnum);
 	struct inet_listen_hashbucket *ilb = &hashinfo->listening_hash[hash];
 	int score, hiscore, matches = 0, reuseport = 0;
-	u32 phash = 0;
+	//	u32 phash = 0;
+	int curr_cpu = smp_processor_id();
 
 	rcu_read_lock();
 begin:
@@ -198,15 +199,27 @@ begin:
 			hiscore = score;
 			reuseport = sk->sk_reuseport;
 			if (reuseport) {
-				phash = inet_ehashfn(net, daddr, hnum,
+			  //			  matches++;
+
+			  /*		phash = inet_ehashfn(net, daddr, hnum,
 						     saddr, sport);
-				matches = 1;
+				matches = 1; */
 			}
 		} else if (score == hiscore && reuseport) {
-			matches++;
+		  
+		  /* goes through the sks and find the one corresponding to our cpu 
+		     it is critical that a RSS queue is bound to a specific cpu
+		  */
+		  //		  pr_info("Matching sk %p match %d to cpu %d\n", sk, matches, curr_cpu);
+			if (matches++ == curr_cpu) {
+			  result = sk;
+			}
+
+			/*
 			if (((u64)phash * matches) >> 32 == 0)
 				result = sk;
 			phash = next_pseudo_random32(phash);
+			*/
 		}
 	}
 	/*
