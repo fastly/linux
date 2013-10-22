@@ -199,9 +199,7 @@ begin:
 			hiscore = score;
 			reuseport = sk->sk_reuseport;
 			if (reuseport) {
-			  if (curr_cpu == 0)
-			    break;
-			  matches++;
+			  //			  matches++;
 
 			  /*		phash = inet_ehashfn(net, daddr, hnum,
 						     saddr, sport);
@@ -215,7 +213,6 @@ begin:
 		  //		  pr_info("Matching sk %p match %d to cpu %d\n", sk, matches, curr_cpu);
 			if (matches++ == curr_cpu) {
 			  result = sk;
-			  break;
 			}
 
 			/*
