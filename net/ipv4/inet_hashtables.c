@@ -199,6 +199,9 @@ begin:
 			hiscore = score;
 			reuseport = sk->sk_reuseport;
 			if (reuseport) {
+
+			  matches++;
+
 			  /*		phash = inet_ehashfn(net, daddr, hnum,
 						     saddr, sport);
 				matches = 1; */
@@ -207,8 +210,8 @@ begin:
 		  
 		  /* goes through the sks and find the one corresponding to our cpu 
 		     it is critical that a RSS queue is bound to a specific cpu
-		   */
-		  
+		  */
+		  pr_info("Matching sk %p match %d to cpu %d\n", sk, matches, curr_cpu);
 			if (matches++ == curr_cpu) {
 			  result = sk;
 			}
@@ -218,7 +221,6 @@ begin:
 				result = sk;
 			phash = next_pseudo_random32(phash);
 			*/
-			/* this has not been assigned to a cpu yet */
 		}
 	}
 	/*
