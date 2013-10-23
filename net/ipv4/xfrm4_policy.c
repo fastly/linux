@@ -31,7 +31,7 @@ static struct dst_entry *__xfrm4_dst_lookup(struct net *net, struct flowi4 *fl4,
 	if (saddr)
 		fl4->saddr = saddr->a4;
 
-	rt = __ip_route_output_key(net, fl4);
+	rt = __ip_route_output_key(net, fl4, 0);
 	if (!IS_ERR(rt))
 		return &rt->dst;
 
