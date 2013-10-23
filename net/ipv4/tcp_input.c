@@ -5974,7 +5974,7 @@ int tcp_conn_request(struct request_sock_ops *rsk_ops,
 		if (tcp_death_row.sysctl_tw_recycle) {
 			bool strict;
 
-			dst = af_ops->route_req(sk, &fl, req, &strict);
+			dst = af_ops->route_req(sk, &fl, req, &strict, 0);
 
 			if (dst && strict &&
 			    !tcp_peer_is_proven(req, dst, true,
@@ -6004,7 +6004,7 @@ int tcp_conn_request(struct request_sock_ops *rsk_ops,
 		isn = af_ops->init_seq(skb);
 	}
 	if (!dst) {
-		dst = af_ops->route_req(sk, &fl, req, NULL);
+		dst = af_ops->route_req(sk, &fl, req, NULL, want_cookie);
 		if (!dst)
 			goto drop_and_free;
 	}

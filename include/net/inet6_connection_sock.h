@@ -26,7 +26,7 @@ int inet6_csk_bind_conflict(const struct sock *sk,
 			    const struct inet_bind_bucket *tb, bool relax);
 
 struct dst_entry *inet6_csk_route_req(struct sock *sk, struct flowi6 *fl6,
-				      const struct request_sock *req);
+				      const struct request_sock *req, int syncookie);
 
 struct request_sock *inet6_csk_search_req(const struct sock *sk,
 					  struct request_sock ***prevp,
