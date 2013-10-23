@@ -424,7 +424,7 @@ struct dst_entry *inet_csk_route_req(struct sock *sk,
 			   (opt && opt->opt.srr) ? opt->opt.faddr : ireq->rmt_addr,
 			   ireq->loc_addr, ireq->rmt_port, inet_sk(sk)->inet_sport);
 	security_req_classify_flow(req, flowi4_to_flowi(fl4));
-	rt = ip_route_output_flow(net, fl4, sk);
+	rt = ip_route_output_flow(net, fl4, sk, req->cookie_ts);
 	if (IS_ERR(rt))
 		goto no_route;
 	if (opt && opt->opt.is_strictroute && rt->rt_uses_gateway)
@@ -460,7 +460,7 @@ struct dst_entry *inet_csk_route_child_sock(struct sock *sk,
 			   (opt && opt->opt.srr) ? opt->opt.faddr : ireq->rmt_addr,
 			   ireq->loc_addr, ireq->rmt_port, inet_sk(sk)->inet_sport);
 	security_req_classify_flow(req, flowi4_to_flowi(fl4));
-	rt = ip_route_output_flow(net, fl4, sk);
+	rt = ip_route_output_flow(net, fl4, sk, 0);
 	if (IS_ERR(rt))
 		goto no_route;
 	if (opt && opt->opt.is_strictroute && rt->rt_uses_gateway)
