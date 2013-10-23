@@ -67,7 +67,7 @@ EXPORT_SYMBOL_GPL(inet6_csk_bind_conflict);
 
 struct dst_entry *inet6_csk_route_req(struct sock *sk,
 				      struct flowi6 *fl6,
-				      const struct request_sock *req)
+				      const struct request_sock *req, int syncookie)
 {
 	struct inet_request_sock *ireq = inet_rsk(req);
 	struct ipv6_pinfo *np = inet6_sk(sk);
@@ -85,6 +85,7 @@ struct dst_entry *inet6_csk_route_req(struct sock *sk,
 	fl6->fl6_sport = htons(ireq->ir_num);
 	security_req_classify_flow(req, flowi6_to_flowi(fl6));
 
+    /* FIXME: Do we need to pass the syncookie thing down here? */
 	dst = ip6_dst_lookup_flow(sk, fl6, final_p);
 	if (IS_ERR(dst))
 		return NULL;

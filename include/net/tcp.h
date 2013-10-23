@@ -1647,7 +1647,7 @@ struct tcp_request_sock_ops {
 #endif
 	struct dst_entry *(*route_req)(struct sock *sk, struct flowi *fl,
 				       const struct request_sock *req,
-				       bool *strict);
+				       bool *strict, int syncookie);
 	__u32 (*init_seq)(const struct sk_buff *skb);
 	int (*send_synack)(struct sock *sk, struct dst_entry *dst,
 			   struct flowi *fl, struct request_sock *req,

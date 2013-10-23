@@ -487,7 +487,7 @@ static int tcp_v6_send_synack(struct sock *sk, struct dst_entry *dst,
 	int err = -ENOMEM;
 
 	/* First, grab a route. */
-	if (!dst && (dst = inet6_csk_route_req(sk, fl6, req)) == NULL)
+	if (!dst && (dst = inet6_csk_route_req(sk, fl6, req, 0)) == NULL)
 		goto done;
 
 	skb = tcp_make_synack(sk, dst, req, foc);
@@ -753,11 +753,11 @@ static void tcp_v6_init_req(struct request_sock *req, struct sock *sk,
 
 static struct dst_entry *tcp_v6_route_req(struct sock *sk, struct flowi *fl,
 					  const struct request_sock *req,
-					  bool *strict)
+					  bool *strict, int syncookie)
 {
 	if (strict)
 		*strict = true;
-	return inet6_csk_route_req(sk, &fl->u.ip6, req);
+	return inet6_csk_route_req(sk, &fl->u.ip6, req, syncookie);
 }
 
 struct request_sock_ops tcp6_request_sock_ops __read_mostly = {
@@ -1122,7 +1122,7 @@ static struct sock *tcp_v6_syn_recv_sock(struct sock *sk, struct sk_buff *skb,
 		goto out_overflow;
 
 	if (!dst) {
-		dst = inet6_csk_route_req(sk, &fl6, req);
+		dst = inet6_csk_route_req(sk, &fl6, req, 0);
 		if (!dst)
 			goto out;
 	}
