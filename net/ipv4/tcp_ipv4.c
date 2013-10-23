@@ -847,7 +847,7 @@ static int tcp_v4_send_synack(struct sock *sk, struct dst_entry *dst,
 	struct sk_buff * skb;
 
 	/* First, grab a route. */
-	if (!dst && (dst = inet_csk_route_req(sk, &fl4, req)) == NULL)
+	if (!dst && (dst = inet_csk_route_req(sk, &fl4, req, 0)) == NULL)
 		return -1;
 
 	skb = tcp_make_synack(sk, dst, req, NULL);
@@ -1549,7 +1549,7 @@ int tcp_v4_conn_request(struct sock *sk, struct sk_buff *skb)
 		 */
 		if (tmp_opt.saw_tstamp &&
 		    tcp_death_row.sysctl_tw_recycle &&
-		    (dst = inet_csk_route_req(sk, &fl4, req)) != NULL &&
+		    (dst = inet_csk_route_req(sk, &fl4, req, 0)) != NULL &&
 		    fl4.daddr == saddr) {
 			if (!tcp_peer_is_proven(req, dst, true)) {
 				NET_INC_STATS_BH(sock_net(sk), LINUX_MIB_PAWSPASSIVEREJECTED);
@@ -1578,7 +1578,7 @@ int tcp_v4_conn_request(struct sock *sk, struct sk_buff *skb)
 	tcp_rsk(req)->snt_isn = isn;
 
 	if (dst == NULL) {
-		dst = inet_csk_route_req(sk, &fl4, req);
+	        dst = inet_csk_route_req(sk, &fl4, req, want_cookie);
 		if (dst == NULL)
 			goto drop_and_free;
 	}

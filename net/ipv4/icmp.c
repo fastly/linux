@@ -396,7 +396,7 @@ static struct rtable *icmp_route_lookup(struct net *net,
 	fl4->fl4_icmp_type = type;
 	fl4->fl4_icmp_code = code;
 	security_skb_classify_flow(skb_in, flowi4_to_flowi(fl4));
-	rt = __ip_route_output_key(net, fl4);
+	rt = __ip_route_output_key(net, fl4, 0);
 	if (IS_ERR(rt))
 		return rt;
 
@@ -418,7 +418,7 @@ static struct rtable *icmp_route_lookup(struct net *net,
 		goto relookup_failed;
 
 	if (inet_addr_type(net, fl4_dec.saddr) == RTN_LOCAL) {
-		rt2 = __ip_route_output_key(net, &fl4_dec);
+       	        rt2 = __ip_route_output_key(net, &fl4_dec, 0);
 		if (IS_ERR(rt2))
 			err = PTR_ERR(rt2);
 	} else {
