@@ -958,7 +958,7 @@ void ipv4_update_pmtu(struct sk_buff *skb, struct net *net, u32 mtu,
 
 	__build_flow_key(&fl4, NULL, iph, oif,
 			 RT_TOS(iph->tos), protocol, mark, flow_flags);
-	rt = __ip_route_output_key(net, &fl4);
+	rt = __ip_route_output_key(net, &fl4, 0);
 	if (!IS_ERR(rt)) {
 		__ip_rt_update_pmtu(rt, &fl4, mtu);
 		ip_rt_put(rt);
@@ -973,7 +973,7 @@ static void __ipv4_sk_update_pmtu(struct sk_buff *skb, struct sock *sk, u32 mtu)
 	struct rtable *rt;
 
 	__build_flow_key(&fl4, sk, iph, 0, 0, 0, 0, 0);
-	rt = __ip_route_output_key(sock_net(sk), &fl4);
+	rt = __ip_route_output_key(sock_net(sk), &fl4, 0);
 	if (!IS_ERR(rt)) {
 		__ip_rt_update_pmtu(rt, &fl4, mtu);
 		ip_rt_put(rt);
@@ -999,7 +999,7 @@ void ipv4_sk_update_pmtu(struct sk_buff *skb, struct sock *sk, u32 mtu)
 	__build_flow_key(&fl4, sk, iph, 0, 0, 0, 0, 0);
 
 	if (!__sk_dst_check(sk, 0)) {
-		rt = ip_route_output_flow(sock_net(sk), &fl4, sk);
+        	rt = ip_route_output_flow(sock_net(sk), &fl4, sk, 0);
 		if (IS_ERR(rt))
 			goto out;
 
@@ -1013,7 +1013,7 @@ void ipv4_sk_update_pmtu(struct sk_buff *skb, struct sock *sk, u32 mtu)
 		if (new)
 			dst_release(&rt->dst);
 
-		rt = ip_route_output_flow(sock_net(sk), &fl4, sk);
+		rt = ip_route_output_flow(sock_net(sk), &fl4, sk, 0);
 		if (IS_ERR(rt))
 			goto out;
 
@@ -1037,7 +1037,7 @@ void ipv4_redirect(struct sk_buff *skb, struct net *net,
 
 	__build_flow_key(&fl4, NULL, iph, oif,
 			 RT_TOS(iph->tos), protocol, mark, flow_flags);
-	rt = __ip_route_output_key(net, &fl4);
+	rt = __ip_route_output_key(net, &fl4, 0);
 	if (!IS_ERR(rt)) {
 		__ip_do_redirect(rt, skb, &fl4, false);
 		ip_rt_put(rt);
@@ -1052,7 +1052,7 @@ void ipv4_sk_redirect(struct sk_buff *skb, struct sock *sk)
 	struct rtable *rt;
 
 	__build_flow_key(&fl4, sk, iph, 0, 0, 0, 0, 0);
-	rt = __ip_route_output_key(sock_net(sk), &fl4);
+	rt = __ip_route_output_key(sock_net(sk), &fl4, 0);
 	if (!IS_ERR(rt)) {
 		__ip_do_redirect(rt, skb, &fl4, false);
 		ip_rt_put(rt);
@@ -1935,7 +1935,7 @@ add:
  * Major route resolver routine.
  */
 
-struct rtable *__ip_route_output_key(struct net *net, struct flowi4 *fl4)
+struct rtable *__ip_route_output_key(struct net *net, struct flowi4 *fl4, int syncookie)
 {
 	struct net_device *dev_out = NULL;
 	__u8 tos = RT_FL_TOS(fl4);
@@ -2091,7 +2091,7 @@ struct rtable *__ip_route_output_key(struct net *net, struct flowi4 *fl4)
 	}
 
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
-	if (res.fi->fib_nhs > 1 && fl4->flowi4_oif == 0)
+	if (syncookie == 0 && res.fi->fib_nhs > 1 && fl4->flowi4_oif == 0)
 		fib_select_multipath(&res);
 	else
 #endif
@@ -2194,9 +2194,9 @@ struct dst_entry *ipv4_blackhole_route(struct net *net, struct dst_entry *dst_or
 }
 
 struct rtable *ip_route_output_flow(struct net *net, struct flowi4 *flp4,
-				    struct sock *sk)
+				    struct sock *sk, int syncookie)
 {
-	struct rtable *rt = __ip_route_output_key(net, flp4);
+        struct rtable *rt = __ip_route_output_key(net, flp4, syncookie);
 
 	if (IS_ERR(rt))
 		return rt;
