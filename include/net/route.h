@@ -108,15 +108,15 @@ struct in_device;
 int ip_rt_init(void);
 void rt_cache_flush(struct net *net);
 void rt_flush_dev(struct net_device *dev);
-struct rtable *__ip_route_output_key(struct net *, struct flowi4 *flp);
+struct rtable *__ip_route_output_key(struct net *, struct flowi4 *flp, int syncookie);
 struct rtable *ip_route_output_flow(struct net *, struct flowi4 *flp,
-				    struct sock *sk);
+					   struct sock *sk, int syncookie);
 struct dst_entry *ipv4_blackhole_route(struct net *net,
 				       struct dst_entry *dst_orig);
 
 static inline struct rtable *ip_route_output_key(struct net *net, struct flowi4 *flp)
 {
-	return ip_route_output_flow(net, flp, NULL);
+       return ip_route_output_flow(net, flp, NULL, 0);
 }
 
 static inline struct rtable *ip_route_output(struct net *net, __be32 daddr,
@@ -143,7 +143,7 @@ static inline struct rtable *ip_route_output_ports(struct net *net, struct flowi
 			   daddr, saddr, dport, sport);
 	if (sk)
 		security_sk_classify_flow(sk, flowi4_to_flowi(fl4));
-	return ip_route_output_flow(net, fl4, sk);
+	return ip_route_output_flow(net, fl4, sk, 0);
 }
 
 static inline struct rtable *ip_route_output_gre(struct net *net, struct flowi4 *fl4,
@@ -266,14 +266,14 @@ static inline struct rtable *ip_route_connect(struct flowi4 *fl4,
 			      sport, dport, sk);
 
 	if (!dst || !src) {
-		rt = __ip_route_output_key(net, fl4);
+         	rt = __ip_route_output_key(net, fl4, 0);
 		if (IS_ERR(rt))
 			return rt;
 		ip_rt_put(rt);
 		flowi4_update_output(fl4, oif, tos, fl4->daddr, fl4->saddr);
 	}
 	security_sk_classify_flow(sk, flowi4_to_flowi(fl4));
-	return ip_route_output_flow(net, fl4, sk);
+	return ip_route_output_flow(net, fl4, sk, 0);
 }
 
 static inline struct rtable *ip_route_newports(struct flowi4 *fl4, struct rtable *rt,
@@ -289,7 +289,7 @@ static inline struct rtable *ip_route_newports(struct flowi4 *fl4, struct rtable
 				     RT_CONN_FLAGS(sk), fl4->daddr,
 				     fl4->saddr);
 		security_sk_classify_flow(sk, flowi4_to_flowi(fl4));
-		return ip_route_output_flow(sock_net(sk), fl4, sk);
+		return ip_route_output_flow(sock_net(sk), fl4, sk, 0);
 	}
 	return rt;
 }
