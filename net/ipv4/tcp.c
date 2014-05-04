@@ -2819,6 +2819,29 @@ void tcp_get_info(const struct sock *sk, struct tcp_info *info)
 }
 EXPORT_SYMBOL_GPL(tcp_get_info);
 
+/* Extend tcp_info with nexthop info. */
+void tcp_get_fst_info(const struct sock *sk, struct tcp_fst_info *fst)
+{
+        struct inet_sock *inet = inet_sk(sk);
+        const struct dst_entry *dst = __sk_dst_get((struct sock *) sk);
+
+        fst->version = 1;
+        fst->tos = inet->tos;
+
+        if (!dst) {
+                memset(&fst->nexthop6, 0, sizeof(struct in6_addr));
+        } else if (sk->sk_family == AF_INET) {
+                const struct rtable *rt = (const struct rtable *) dst;
+                memcpy(&fst->nexthop, &rt->rt_gateway, sizeof(struct in_addr));
+        } else if (sk->sk_family == AF_INET6) {
+                const struct rt6_info *rt = (const struct rt6_info *) dst;
+                memcpy(&fst->nexthop6, &rt->rt6i_gateway, sizeof(struct in6_addr));
+        }
+
+        tcp_get_info(sk, &fst->info);
+}
+EXPORT_SYMBOL_GPL(tcp_get_fst_info);
+
 static int do_tcp_getsockopt(struct sock *sk, int level,
 		int optname, char __user *optval, int __user *optlen)
 {
@@ -2937,6 +2960,21 @@ static int do_tcp_getsockopt(struct sock *sk, int level,
 	case TCP_NOTSENT_LOWAT:
 		val = tp->notsent_lowat;
 		break;
+	case TCP_FASTLY_INFO: {
+		struct tcp_fst_info fst;
+
+		if (get_user(len, optlen))
+			return -EFAULT;
+
+		tcp_get_fst_info(sk, &fst);
+
+		len = min_t(unsigned int, len, sizeof(fst));
+		if (put_user(len, optlen))
+			return -EFAULT;
+		if (copy_to_user(optval, &fst, len))
+			return -EFAULT;
+		return 0;
+	}
 	default:
 		return -ENOPROTOOPT;
 	}
