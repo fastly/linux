@@ -113,6 +113,8 @@ enum {
 #define TCP_TIMESTAMP		25
 #define TCP_CWND            19 /* Set congestion window */
 
+#define TCP_FASTLY_INFO         66      /* Additional info about connection. */
+
 struct tcp_repair_opt {
 	__u32	opt_code;
 	__u32	opt_val;
@@ -186,6 +188,18 @@ struct tcp_info {
 	__u32	tcpi_rcv_space;
 
 	__u32	tcpi_total_retrans;
+};
+
+struct tcp_fst_info {
+        __u8            version;
+        __u8            tos;
+        __u16           __unused;
+        union {
+                struct in_addr   nexthop;
+                struct in6_addr  nexthop6;
+        };
+        __u32           __pad[11];
+        struct tcp_info info;
 };
 
 /* for TCP_MD5SIG socket option */
