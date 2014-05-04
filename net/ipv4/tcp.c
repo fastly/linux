@@ -2662,21 +2662,6 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
 		else
 			tp->tsoffset = val - tcp_time_stamp;
 		break;
-        case TCP_FASTLY_INFO: {
-                struct tcp_fst_info fst;
-
-                if (get_user(len, optlen))
-                        return -EFAULT;
-
-                tcp_get_fst_info(sk, &fst);
-
-                len = min_t(unsigned int, len, sizeof(fst));
-                if (put_user(len, optlen))
-                        return -EFAULT;
-                if (copy_to_user(optval, &fst, len))
-                        return -EFAULT;
-                return 0;
-        }
 	default:
 		err = -ENOPROTOOPT;
 		break;
@@ -2916,6 +2901,21 @@ static int do_tcp_getsockopt(struct sock *sk, int level,
 	case TCP_TIMESTAMP:
 		val = tcp_time_stamp + tp->tsoffset;
 		break;
+	case TCP_FASTLY_INFO: {
+		struct tcp_fst_info fst;
+
+		if (get_user(len, optlen))
+			return -EFAULT;
+
+		tcp_get_fst_info(sk, &fst);
+
+		len = min_t(unsigned int, len, sizeof(fst));
+		if (put_user(len, optlen))
+			return -EFAULT;
+		if (copy_to_user(optval, &fst, len))
+			return -EFAULT;
+		return 0;
+	}
 	default:
 		return -ENOPROTOOPT;
 	}
