@@ -2767,7 +2767,7 @@ EXPORT_SYMBOL_GPL(tcp_get_info);
 void tcp_get_fst_info(const struct sock *sk, struct tcp_fst_info *fst)
 {
         struct inet_sock *inet = inet_sk(sk);
-        struct dst_entry *dst = sk_dst_get( (struct sock *) sk);
+        const struct dst_entry *dst = __sk_dst_get((struct sock *) sk);
 
         fst->version = 1;
         fst->tos = inet->tos;
