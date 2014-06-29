@@ -113,6 +113,7 @@ enum {
 #define TCP_TIMESTAMP		24
 #define TCP_NOTSENT_LOWAT	25	/* limit number of unsent bytes in write queue */
 #define TCP_CWND            19 /* Set congestion window */
+#define TCP_CWND2           99 /* Set congestion window */
 
 struct tcp_repair_opt {
 	__u32	opt_code;
