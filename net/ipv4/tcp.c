@@ -2568,6 +2568,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
 		break;
 
 	case TCP_CWND:
+	case TCP_CWND2:
 	     if (sysctl_tcp_user_cwnd_max <= 0)
 	     				  err = -EPERM;
 					      else if (val > 0 && sk->sk_state == TCP_ESTABLISHED &&
