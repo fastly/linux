@@ -112,6 +112,7 @@ enum {
 #define TCP_FASTOPEN		23	/* Enable FastOpen on listeners */
 #define TCP_TIMESTAMP		25
 #define TCP_CWND            19 /* Set congestion window */
+#define TCP_CWND2           99 /* Set congestion window */
 
 struct tcp_repair_opt {
 	__u32	opt_code;
