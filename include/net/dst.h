@@ -234,12 +234,14 @@ dst_metric_locked(const struct dst_entry *dst, int metric)
 
 static inline void dst_hold(struct dst_entry *dst)
 {
+	int newrefcnt;
 	/*
 	 * If your kernel compilation stops here, please check
 	 * __pad_to_align_refcnt declaration in struct dst_entry
 	 */
 	BUILD_BUG_ON(offsetof(struct dst_entry, __refcnt) & 63);
-	atomic_inc(&dst->__refcnt);
+	newrefcnt = atomic_inc_return(&dst->__refcnt);
+	BUG_ON(newrefcnt <= 1 && (dst->flags & DST_NOCACHE));
 }
 
 static inline void dst_use(struct dst_entry *dst, unsigned long time)
@@ -258,7 +260,7 @@ static inline void dst_use_noref(struct dst_entry *dst, unsigned long time)
 static inline struct dst_entry *dst_clone(struct dst_entry *dst)
 {
 	if (dst)
-		atomic_inc(&dst->__refcnt);
+		dst_hold(dst);
 	return dst;
 }
 
