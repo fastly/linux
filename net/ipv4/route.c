@@ -1721,12 +1721,8 @@ local_input:
 		rth->dst.error= -err;
 		rth->rt_flags 	&= ~RTCF_LOCAL;
 	}
-	if (do_cache) {
-		if (unlikely(!rt_cache_route(&FIB_RES_NH(res), rth))) {
-			rth->dst.flags |= DST_NOCACHE;
-			rt_add_uncached_list(rth);
-		}
-	}
+	if (do_cache)
+		rt_cache_route(&FIB_RES_NH(res), rth);
 	skb_dst_set(skb, &rth->dst);
 	err = 0;
 	goto out;
