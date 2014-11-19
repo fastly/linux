@@ -19,10 +19,14 @@ static char vdso_file[] = "/tmp/perf-vdso.so-XXXXXX";
 static int find_vdso_map(void **start, void **end)
 {
 	FILE *maps;
+	char filename[PATH_MAX];
 	char line[128];
 	int found = 0;
+	pid_t self;
 
-	maps = fopen("/proc/self/maps", "r");
+	self = getpid();
+	snprintf(filename, sizeof(filename), "/proc/%d/task/%d/maps", self, self);
+	maps = fopen(filename, "r");
 	if (!maps) {
 		pr_err("vdso: cannot open maps\n");
 		return -1;

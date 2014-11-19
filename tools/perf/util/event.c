@@ -175,7 +175,7 @@ static int perf_event__synthesize_mmap_events(struct perf_tool *tool,
 	FILE *fp;
 	int rc = 0;
 
-	snprintf(filename, sizeof(filename), "/proc/%d/maps", pid);
+	snprintf(filename, sizeof(filename), "/proc/%d/task/%d/maps", pid, pid);
 
 	fp = fopen(filename, "r");
 	if (fp == NULL) {
