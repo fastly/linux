@@ -323,9 +323,14 @@ struct rtnexthop {
 
 /* rtnh_flags */
 
-#define RTNH_F_DEAD		1	/* Nexthop is dead (used by multipath)	*/
-#define RTNH_F_PERVASIVE	2	/* Do recursive gateway lookup	*/
-#define RTNH_F_ONLINK		4	/* Gateway is forced on link	*/
+#define RTNH_F_DEAD_OFFSET 0
+#define RTNH_F_DEAD		(1 << RTNH_F_DEAD_OFFSET)	/* Nexthop is dead (used by multipath)	*/
+
+#define RTNH_F_PERVASIVE_OFFSET 1
+#define RTNH_F_PERVASIVE	(1 << RTNH_F_PERVASIVE_OFFSET)	/* Do recursive gateway lookup	*/
+
+#define RTNH_F_ONLINK_OFFSET 2
+#define RTNH_F_ONLINK		(1 << RTNH_F_ONLINK_OFFSET)	/* Gateway is forced on link	*/
 
 /* Macros to handle hexthops */
 

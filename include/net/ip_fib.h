@@ -70,11 +70,10 @@ struct fib_nh {
 	struct net_device	*nh_dev;
 	struct hlist_node	nh_hash;
 	struct fib_info		*nh_parent;
-	unsigned int		nh_flags;
+	unsigned long		nh_flags;
 	unsigned char		nh_scope;
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 	int			nh_weight;
-	int			nh_power;
 #endif
 #ifdef CONFIG_IP_ROUTE_CLASSID
 	__u32			nh_tclassid;
@@ -111,9 +110,6 @@ struct fib_info {
 #define fib_rtt fib_metrics[RTAX_RTT-1]
 #define fib_advmss fib_metrics[RTAX_ADVMSS-1]
 	int			fib_nhs;
-#ifdef CONFIG_IP_ROUTE_MULTIPATH
-	int			fib_power;
-#endif
 	struct rcu_head		rcu;
 	struct fib_nh		fib_nh[0];
 #define fib_dev		fib_nh[0].nh_dev
