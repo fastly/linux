@@ -82,4 +82,6 @@
 
 #define SO_BPF_EXTENSIONS	48
 
+#define SO_FASTLY_TW_REUSE	49
+
 #endif /* __ASM_GENERIC_SOCKET_H */

@@ -964,6 +964,10 @@ set_rcvbuf:
 					 sk->sk_max_pacing_rate);
 		break;
 
+	case SO_FASTLY_TW_REUSE:
+		sk->sk_tw_reuse = valbool;
+		break;
+
 	default:
 		ret = -ENOPROTOOPT;
 		break;
