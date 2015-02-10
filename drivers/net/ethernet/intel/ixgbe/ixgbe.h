@@ -301,7 +301,9 @@ enum ixgbe_ring_f_enum {
 	RING_F_ARRAY_SIZE      /* must be last in enum set */
 };
 
-#define IXGBE_MAX_RSS_INDICES  16
+#define IXGBE_MAX_RSS_INDICES_82598 16
+#define IXGBE_MAX_RSS_INDICES_82599 64
+#define IXGBE_MAX_RSS_INDICES_X540  64
 #define IXGBE_MAX_VMDQ_INDICES 64
 #define IXGBE_MAX_FDIR_INDICES 63	/* based on q_vector limit */
 #define IXGBE_MAX_FCOE_INDICES  8

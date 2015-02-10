@@ -4953,8 +4953,6 @@ static int ixgbe_sw_init(struct ixgbe_adapter *adapter)
 	hw->subsystem_device_id = pdev->subsystem_device;
 
 	/* Set common capability flags and settings */
-	rss = min_t(int, IXGBE_MAX_RSS_INDICES, num_online_cpus());
-	adapter->ring_feature[RING_F_RSS].limit = rss;
 	adapter->flags2 |= IXGBE_FLAG2_RSC_CAPABLE;
 	adapter->flags2 |= IXGBE_FLAG2_RSC_ENABLED;
 	adapter->max_q_vectors = MAX_Q_VECTORS_82599;
@@ -4977,6 +4975,8 @@ static int ixgbe_sw_init(struct ixgbe_adapter *adapter)
 	/* Set MAC specific capability flags and exceptions */
 	switch (hw->mac.type) {
 	case ixgbe_mac_82598EB:
+		rss = min_t(int, IXGBE_MAX_RSS_INDICES_82598, num_online_cpus());
+
 		adapter->flags2 &= ~IXGBE_FLAG2_RSC_CAPABLE;
 		adapter->flags2 &= ~IXGBE_FLAG2_RSC_ENABLED;
 
@@ -4996,17 +4996,24 @@ static int ixgbe_sw_init(struct ixgbe_adapter *adapter)
 #endif /* IXGBE_FCOE */
 		break;
 	case ixgbe_mac_82599EB:
+		rss = min_t(int, IXGBE_MAX_RSS_INDICES_82599, num_online_cpus());
+
 		if (hw->device_id == IXGBE_DEV_ID_82599_T3_LOM)
 			adapter->flags2 |= IXGBE_FLAG2_TEMP_SENSOR_CAPABLE;
 		break;
 	case ixgbe_mac_X540:
+		rss = min_t(int, IXGBE_MAX_RSS_INDICES_X540, num_online_cpus());
+
 		fwsm = IXGBE_READ_REG(hw, IXGBE_FWSM);
 		if (fwsm & IXGBE_FWSM_TS_ENABLED)
 			adapter->flags2 |= IXGBE_FLAG2_TEMP_SENSOR_CAPABLE;
 		break;
 	default:
+		/* Preserve old driver default value, which was tuned for 82598 */
+		rss = min_t(int, IXGBE_MAX_RSS_INDICES_82598, num_online_cpus());
 		break;
 	}
+	adapter->ring_feature[RING_F_RSS].limit = rss;
 
 #ifdef IXGBE_FCOE
 	/* FCoE support exists, always init the FCoE lock */
@@ -7854,7 +7861,7 @@ static int ixgbe_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	const struct ixgbe_info *ii = ixgbe_info_tbl[ent->driver_data];
 	static int cards_found;
 	int i, err, pci_using_dac, expected_gts;
-	unsigned int indices = MAX_TX_QUEUES;
+	unsigned int indices;
 	u8 part_str[IXGBE_PBANUM_LENGTH];
 #ifdef IXGBE_FCOE
 	u16 device_caps;
@@ -7899,13 +7906,24 @@ static int ixgbe_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pci_set_master(pdev);
 	pci_save_state(pdev);
 
-	if (ii->mac == ixgbe_mac_82598EB) {
+	switch (ii->mac) {
+	case ixgbe_mac_82598EB:
 #ifdef CONFIG_IXGBE_DCB
 		/* 8 TC w/ 4 queues per TC */
 		indices = 4 * MAX_TRAFFIC_CLASS;
 #else
-		indices = IXGBE_MAX_RSS_INDICES;
+		indices = IXGBE_MAX_RSS_INDICES_82598;
 #endif
+		break;
+	case ixgbe_mac_82599EB:
+		indices = IXGBE_MAX_RSS_INDICES_82599;
+		break;
+	case ixgbe_mac_X540:
+		indices = IXGBE_MAX_RSS_INDICES_X540;
+		break;
+	default:
+		indices = MAX_TX_QUEUES;
+		break;
 	}
 
 	netdev = alloc_etherdev_mq(sizeof(struct ixgbe_adapter), indices);

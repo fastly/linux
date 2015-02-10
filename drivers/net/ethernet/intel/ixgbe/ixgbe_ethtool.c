@@ -2901,7 +2901,7 @@ static unsigned int ixgbe_max_channels(struct ixgbe_adapter *adapter)
 		max_combined = IXGBE_MAX_FDIR_INDICES;
 	} else {
 		/* support up to 16 queues with RSS */
-		max_combined = IXGBE_MAX_RSS_INDICES;
+		max_combined = IXGBE_MAX_RSS_INDICES_82598;
 	}
 
 	return max_combined;
@@ -2965,9 +2965,22 @@ static int ixgbe_set_channels(struct net_device *dev,
 	/* update feature limits from largest to smallest supported values */
 	adapter->ring_feature[RING_F_FDIR].limit = count;
 
-	/* cap RSS limit at 16 */
-	if (count > IXGBE_MAX_RSS_INDICES)
-		count = IXGBE_MAX_RSS_INDICES;
+	/* cap RSS limit at HW max */
+	switch (hw->mac.type) {
+	case ixgbe_mac_82599EB:
+		if (count > IXGBE_MAX_RSS_INDICES_82599)
+			count = IXGBE_MAX_RSS_INDICES_82599;
+		break;
+	case ixgbe_mac_X540:
+		if (count > IXGBE_MAX_RSS_INDICES_X540)
+			count = IXGBE_MAX_RSS_INDICES_X540;
+		break;
+	case ixgbe_mac_82598EB:
+	default:
+		if (count > IXGBE_MAX_RSS_INDICES_82598)
+			count = IXGBE_MAX_RSS_INDICES_82598;
+		break;
+	}
 	adapter->ring_feature[RING_F_RSS].limit = count;
 
 #ifdef IXGBE_FCOE
