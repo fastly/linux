@@ -2919,6 +2919,10 @@ static int do_tcp_getsockopt(struct sock *sk, int level,
 		if (copy_to_user(optval, &fst, len))
 			return -EFAULT;
 		return 0;
+	case TCP_CWND:
+	case TCP_CWND2:
+		val = tp->snd_cwnd;
+		break;
 	}
 	default:
 		return -ENOPROTOOPT;
