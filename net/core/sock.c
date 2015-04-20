@@ -908,8 +908,10 @@ set_rcvbuf:
 	case SO_MARK:
 		if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
 			ret = -EPERM;
-		else
+		else {
 			sk->sk_mark = val;
+			sk_dst_reset(sk);
+		}
 		break;
 
 		/* We implement the SO_SNDLOWAT etc to
