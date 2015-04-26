@@ -32,6 +32,7 @@
 #include <linux/skbuff.h>
 #include <linux/init.h>
 #include <linux/slab.h>
+#include <linux/percpu.h>
 
 #include <net/arp.h>
 #include <net/ip.h>
@@ -57,7 +58,7 @@ static struct hlist_head fib_info_devhash[DEVINDEX_HASHSIZE];
 
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 
-static DEFINE_SPINLOCK(fib_multipath_lock);
+DEFINE_PER_CPU(int, fib_multipath_counter) = -1;
 
 #define for_nexthops(fi) {						\
 	int nhsel; const struct fib_nh *nh;				\
@@ -258,9 +259,7 @@ static inline int nh_comp(const struct fib_info *fi, const struct fib_info *ofi)
 		if (nh->nh_oif != onh->nh_oif ||
 		    nh->nh_gw  != onh->nh_gw ||
 		    nh->nh_scope != onh->nh_scope ||
-#ifdef CONFIG_IP_ROUTE_MULTIPATH
 		    nh->nh_weight != onh->nh_weight ||
-#endif
 #ifdef CONFIG_IP_ROUTE_CLASSID
 		    nh->nh_tclassid != onh->nh_tclassid ||
 #endif
@@ -1137,12 +1136,6 @@ int fib_sync_down_dev(struct net_device *dev, int force)
 			else if (nexthop_nh->nh_dev == dev &&
 				 nexthop_nh->nh_scope != scope) {
 				nexthop_nh->nh_flags |= RTNH_F_DEAD;
-#ifdef CONFIG_IP_ROUTE_MULTIPATH
-				spin_lock_bh(&fib_multipath_lock);
-				fi->fib_power -= nexthop_nh->nh_power;
-				nexthop_nh->nh_power = 0;
-				spin_unlock_bh(&fib_multipath_lock);
-#endif
 				dead++;
 			}
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
@@ -1261,10 +1254,7 @@ int fib_sync_up(struct net_device *dev)
 			    !__in_dev_get_rtnl(dev))
 				continue;
 			alive++;
-			spin_lock_bh(&fib_multipath_lock);
-			nexthop_nh->nh_power = 0;
-			nexthop_nh->nh_flags &= ~RTNH_F_DEAD;
-			spin_unlock_bh(&fib_multipath_lock);
+			clear_bit(RTNH_F_DEAD_OFFSET, &nexthop_nh->nh_flags);
 		} endfor_nexthops(fi)
 
 		if (alive > 0) {
@@ -1277,55 +1267,35 @@ int fib_sync_up(struct net_device *dev)
 }
 
 /*
- * The algorithm is suboptimal, but it provides really
- * fair weighted route distribution.
+ * The algorithm is suboptimal, and it doesn't provide really
+ * fair weighted route distribution, but it's lock-free!
  */
 void fib_select_multipath(struct fib_result *res)
 {
 	struct fib_info *fi = res->fi;
-	int w;
+	struct fib_nh *nexthop_nh;
+	int nhsel, attempts;
 
-	spin_lock_bh(&fib_multipath_lock);
-	if (fi->fib_power <= 0) {
-		int power = 0;
-		change_nexthops(fi) {
-			if (!(nexthop_nh->nh_flags & RTNH_F_DEAD)) {
-				power += nexthop_nh->nh_weight;
-				nexthop_nh->nh_power = nexthop_nh->nh_weight;
-			}
-		} endfor_nexthops(fi);
-		fi->fib_power = power;
-		if (power <= 0) {
-			spin_unlock_bh(&fib_multipath_lock);
-			/* Race condition: route has just become dead. */
-			res->nh_sel = 0;
-			return;
+	/* Initialise the counter with the CPU ID if not already set. */
+	if (this_cpu_read(fib_multipath_counter) == -1) {
+		this_cpu_write(fib_multipath_counter, get_cpu());
+	}
+
+	/* Round-robin multipaths, choosing the next live one or
+	 * an arbitrary dead one if none are live. */
+	attempts = fi->fib_nhs;
+	nhsel = 0;
+	while (--attempts >= 0) {
+		this_cpu_inc(fib_multipath_counter);
+		nhsel = this_cpu_read(fib_multipath_counter) % fi->fib_nhs;
+
+		nexthop_nh = &fi->fib_nh[nhsel];
+		if (!nexthop_nh->nh_flags & RTNH_F_DEAD) {
+			break;
 		}
 	}
 
-
-	/* w should be random number [0..fi->fib_power-1],
-	 * it is pretty bad approximation.
-	 */
-
-	w = jiffies % fi->fib_power;
-
-	change_nexthops(fi) {
-		if (!(nexthop_nh->nh_flags & RTNH_F_DEAD) &&
-		    nexthop_nh->nh_power) {
-			w -= nexthop_nh->nh_power;
-			if (w <= 0) {
-				nexthop_nh->nh_power--;
-				fi->fib_power--;
-				res->nh_sel = nhsel;
-				spin_unlock_bh(&fib_multipath_lock);
-				return;
-			}
-		}
-	} endfor_nexthops(fi);
-
-	/* Race condition: route has just become dead. */
-	res->nh_sel = 0;
-	spin_unlock_bh(&fib_multipath_lock);
+	/* Race condition: route may have just become dead. */
+	res->nh_sel = nhsel;
 }
 #endif
