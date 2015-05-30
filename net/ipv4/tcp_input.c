@@ -1915,6 +1915,7 @@ void tcp_enter_loss(struct sock *sk, int how)
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct sk_buff *skb;
 	bool new_recovery = false;
+	bool was_sacked;
 
 	/* Reduce ssthresh if it has not yet been made inside this window. */
 	if (icsk->icsk_ca_state <= TCP_CA_Disorder ||
@@ -1949,11 +1950,17 @@ void tcp_enter_loss(struct sock *sk, int how)
 			tp->undo_marker = 0;
 
 		TCP_SKB_CB(skb)->sacked &= (~TCPCB_TAGBITS)|TCPCB_SACKED_ACKED;
-		if (!(TCP_SKB_CB(skb)->sacked&TCPCB_SACKED_ACKED) || how) {
+		was_sacked = TCP_SKB_CB(skb)->sacked & TCPCB_SACKED_ACKED;
+		if (!was_sacked || how) {
 			TCP_SKB_CB(skb)->sacked &= ~TCPCB_SACKED_ACKED;
 			TCP_SKB_CB(skb)->sacked |= TCPCB_LOST;
 			tp->lost_out += tcp_skb_pcount(skb);
 			tp->retransmit_high = TCP_SKB_CB(skb)->end_seq;
+
+			/* Clean up weird pcounts from tcp_shifted_skb(). */
+			if (was_sacked)
+				tcp_reset_skb_tso_segs(sk, skb,
+						       tcp_current_mss(sk));
 		}
 	}
 	tcp_verify_left_out(tp);

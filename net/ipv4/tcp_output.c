@@ -1502,6 +1502,20 @@ static int tcp_init_tso_segs(const struct sock *sk, struct sk_buff *skb,
 	return tso_segs;
 }
 
+/* Recompute the TSO segmentation for an skb that was already sent. */
+int tcp_reset_skb_tso_segs(struct sock *sk, struct sk_buff *skb,
+			   unsigned int mss_now)
+{
+	int oldpcount = tcp_skb_pcount(skb);
+
+	if (skb_unclone(skb, GFP_ATOMIC))
+		return -ENOMEM;
+
+	tcp_set_skb_tso_segs(sk, skb, mss_now);
+	tcp_adjust_pcount(sk, skb, oldpcount - tcp_skb_pcount(skb));
+
+	return 0;
+}
 
 /* Return true if the Nagle test allows this packet to be
  * sent now.

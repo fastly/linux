@@ -544,6 +544,8 @@ void tcp_xmit_retransmit_queue(struct sock *);
 void tcp_simple_retransmit(struct sock *);
 int tcp_trim_head(struct sock *, struct sk_buff *, u32);
 int tcp_fragment(struct sock *, struct sk_buff *, u32, unsigned int);
+int tcp_reset_skb_tso_segs(struct sock *sk, struct sk_buff *skb,
+			   unsigned int mss_now);
 
 void tcp_send_probe0(struct sock *);
 void tcp_send_partial(struct sock *);
